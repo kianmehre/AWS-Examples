@@ -1,0 +1,48 @@
+#! /usr/bin/env bash
+echo "sync"
+
+set -e
+
+if [ -z "$1" ]; then
+  echo "There needs to be a bucket name e.g. ./bucket my-bucket-name."
+    exit 1
+fi
+
+
+if [ -z "$2" ]; then
+  echo "There needs to be a filename prefix."
+    exit 1
+fi
+
+BUCKET_NAME=$1
+FILENAME_PREFIX=$2
+
+
+OUTPUT_DIR="/tmp/s3-bash-scripts"
+
+# Remote the folder if it already exists
+rm -r $OUTPUT_DIR
+
+# Make dir
+mkdir -p $OUTPUT_DIR
+
+# Generate a random number of files between 5 and 10
+NUM_FILES=$((RANDOM % 6 + 5))
+
+echo "Creating $num_files random files..."
+
+for ((i = 1; i <= NUM_FILES; i++)); do
+  # Generate a random file name
+  file_name="$OUTPUT_DIR/${FILENAME_PREFIX}_file_$(date +%s%N)_$((RANDOM % 1000)).txt"
+  
+  # Create the file
+  touch "$file_name"
+  
+  echo "Created file: $file_name"
+done
+
+tree $OUTPUT_DIR
+
+aws s3 sync $OUTPUT_DIR s3://$BUCKET_NAME/files
+
+echo "Done!"
